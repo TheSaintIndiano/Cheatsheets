@@ -1,0 +1,5 @@
+// Visual git cheatsheet
+
+http://ndpsoftware.com/git-cheatsheet.html
+
+https://marklodato.github.io/visual-git-guide/index-en.html
