@@ -1,0 +1,3 @@
+# Model serve
+
+mlflow models serve -m mlruns/0/f7aa700cc2cb4d1f98ea2a2fa6486a4b/artifacts/model -p 5050
