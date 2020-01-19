@@ -13,4 +13,4 @@ watch sensors
 
 // A lightweight system profiler and benchmark tool designed for hardware analysis and report generation.
 hardinfo -rma devices.so
-hardinfo  // GUI
+hardinfo  // GUI run
