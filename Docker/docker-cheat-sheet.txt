@@ -1,0 +1,28 @@
+// To avoid running the container as root by specifying user's user
+docker run -u $(id -u):$(id -g) 
+
+// Bash shell session
+docker run -u $(id -u):$(id -g) -it indiano/cornucopia:latest-jupyterlab bash
+
+// nvidia-smi run
+docker run --gpus all -it tensorflow/tensorflow:latest-gpu-jupyter nvidia-smi
+docker run -u $(id -u):$(id -g) --gpus all -it indiano/cornucopia:latest-jupyterlab nvidia-smi
+
+// Jupyter lab run
+docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --expose 8888 -p 8888:8888 indiano/cornucopia:latest-jupyterlab
+
+docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --net=host -p 8888:8888 indiano/cornucopia:latest-jupyterlab
+
+// GPU run check
+docker run --gpus all -it --rm indiano/cornucopia:latest-jupyterlab \
+   python -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
+
+// Docker build
+docker build . -t indiano/cornucopia:latest-jupyterlab --no-cache
+
+// Docker inspect 
+docker inspect -f "{{ .Config.Env }}" container_id
+
+// Docker commit & rollback
+docker history imagename
+docker tag taagid{4 letters} imagename
