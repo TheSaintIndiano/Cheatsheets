@@ -11,14 +11,15 @@ docker run -u $(id -u):$(id -g) --gpus all -it indiano/cornucopia:latest-jupyter
 // Jupyter lab run
 docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --expose 8888 -p 8888:8888 indiano/cornucopia:latest-jupyterlab
 
-docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --net=host -p 8888:8888 indiano/cornucopia:latest-jupyterlab
+docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --net=host -p 8888:8888 indiano/cornucopia:latest-jupyterlab  // --ipc=host
 
 // GPU run check
 docker run --gpus all -it --rm indiano/cornucopia:latest-jupyterlab \
    python -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
 
 // Docker build
-docker build . -t indiano/cornucopia:latest-jupyterlab --no-cache
+docker build -t indiano/cornucopia:latest-jupyterlab --no-cache .
+docker build -t cornucopia/life:latest --no-cache .
 
 // Docker inspect 
 docker inspect -f "{{ .Config.Env }}" container_id
@@ -26,3 +27,27 @@ docker inspect -f "{{ .Config.Env }}" container_id
 // Docker commit & rollback
 docker history imagename
 docker tag taagid{4 letters} imagename
+
+// Managing docker containers using Portainer management interface
+docker volume create portainer_data 
+docker run -d -p 127.0.0.1:8000:8000 -p 127.0.0.1:9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer
+
+// Removing All Unused Objects
+// The docker system prune command will remove all stopped containers, all // dangling images, and all unused networks.
+docker system prune
+docker system prune --volumes  // remove all unused volumes
+
+// Removing Docker Containers
+docker container ls -a
+docker container rm cc3f2ff51cab cd20b396a061
+
+// Remove all stopped containers
+// Get a list of all non-running (stopped) containers 
+docker container ls -a --filter status=exited --filter status=created 
+docker container prune  // -f or --force flag
+docker container prune --filter "until=12h"  // Remove containers using filters until and label, more than one filter by using multiple --filter flags.
+
+// Stop and remove all containers
+docker container stop $(docker container ls -aq)
+docker container rm $(docker container ls -aq)
+
