@@ -1,0 +1,37 @@
+# DISK ANALYSIS
+
+
+########################################## Visual tools ##########################################
+
+1) Stacer
+2) Disk analyzer app ubuntu
+3) Disks app ubuntu
+4) gparted
+
+########################################## COMMAND LINE tools ##########################################
+
+pydf
+
+fdisk -l
+
+##################### DU #####################
+
+
+# Displays an estimate of disk usage for directories and files
+du -sh / 2> /dev/null  # s summary, c grand total, redirect any error message to /dev/null
+du -d2 -h /home | sort -h  # -d or --max-depth=1, --exclude='*.o', --apparent-size to get the real size
+
+# Disk space used by all your PNG files
+find / -name *.png 2> /dev/null | xargs du -ch
+
+
+##################### DF #####################
+
+
+# Disk space
+df -h /home/
+df -h --output='size','pcent' /  # show only the size and the usage percentage
+df -h --inodes /  # may run out of inode entries before running out of disk space.
+
+
+
