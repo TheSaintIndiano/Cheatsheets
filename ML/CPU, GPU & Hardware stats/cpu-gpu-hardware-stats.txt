@@ -1,16 +1,27 @@
-// GPU stats
-nvidia-smi -l 1
+# CPU, GPU & HARWARE INFO
 
+
+########################################## GPU info ##########################################
+
+
+# NVIDIA smi
+nvidia-smi -l 1
 watch -n 1 nvidia-smi
 
-gpustat -cp --watch -i 1
-
+# GLANCES
 glances --meangpu
 
-// Displays the current readings of all sensor chips including the CPU.
+# GPUSTAT
+gpustat -cp --watch -i 1
+
+
+########################################## HARDWARE info ##########################################
+
+
+# Displays the current readings of all sensor chips including the CPU.
 sensors
 watch sensors
 
-// A lightweight system profiler and benchmark tool designed for hardware analysis and report generation.
+# A lightweight system profiler and benchmark tool designed for hardware analysis and report generation.
 hardinfo -rma devices.so
-hardinfo  // GUI run
+hardinfo  # GUI run
