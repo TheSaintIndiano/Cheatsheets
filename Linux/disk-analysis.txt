@@ -11,10 +11,11 @@
 ########################################## COMMAND LINE tools ##########################################
 
 
-##################### pydf #####################
+##################### pydf, fdisk #####################
 
 
-pydf
+# A disk utility tool that displays information in a user friendly way.
+pydf /home
 
 fdisk -l
 
