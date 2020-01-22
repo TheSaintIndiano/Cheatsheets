@@ -5,7 +5,7 @@
 
 
 # To avoid running the container as root by specifying user's user
-docker run -u $(id -u):$(id -g) 
+docker run -u $(id -u):$(id -g)  # --user $UID:$UID, --user=$USER
 
 # Bash shell session
 docker run -u $(id -u):$(id -g) -it indiano/cornucopia:latest-jupyterlab bash
