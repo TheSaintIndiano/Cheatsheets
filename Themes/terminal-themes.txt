@@ -1,5 +1,0 @@
-# Terminator themes
-wget https://git.io/v5Zww -O $HOME"/.config/terminator/plugins/terminator-themes.py"
-
-# Gnome-terminal themes
-bash -c  "$(wget -qO- https://git.io/vQgMr)" 

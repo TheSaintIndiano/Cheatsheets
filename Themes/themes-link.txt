@@ -1,0 +1,8 @@
+# Precision color scheme for multiple applications (terminal, vim, etc.) with both dark/light modes http://ethanschoonover.com/solarized
+# https://github.com/altercation/solarized
+
+# Terminator themes
+wget https://git.io/v5Zww -O $HOME"/.config/terminator/plugins/terminator-themes.py"
+
+# Gnome-terminal themes
+bash -c  "$(wget -qO- https://git.io/vQgMr)" 
