@@ -1,0 +1,37 @@
+# LINUX Commands
+
+
+########################################## BASH ##########################################
+
+
+command 2>&1 >/dev/null | grep 'something'
+command 3>&1 1>&2 2>&3
+command >/dev/null |& grep "something"
+
+fdupes -d /path/to/folder  # -N to save first and delete all
+
+# Output and Log results
+./test | tee test.log
+script -c ./test test.log
+
+
+########################################## APT ##########################################
+
+
+# Find packages details
+apt-cache madison pkg
+apt-cache show package | grep Version
+apt-cache policy pkg  # packages available from the repos listed in sources.list
+apt-show-versions -a 
+
+
+########################################## FIND ##########################################
+
+
+# Remove all regular files (recursively, including hidden ones) except file.txt.
+find . ! -name 'file.txt' -type f -exec rm -f {} +  
+
+ls | grep -v file.txt | xargs rm  # remove except file, use parallel rm for file names with spaces
+
+
+
