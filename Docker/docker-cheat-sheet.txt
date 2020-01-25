@@ -1,6 +1,48 @@
 # DOCKER CHEAT SHEET
 
 
+########################################## BUILD docker ##########################################
+
+
+# Docker build
+docker build -t cl:sudo --no-cache . | tee ../cornucopia.log
+
+# Docker inspect 
+docker inspect -f "{{ .Config.Env }}" container_id
+
+# Docker image ID
+ID="$(docker images | grep 'cornucopia/life' | head -n 1 | awk '{print $3}')"
+
+# Docker commit & rollback
+docker history imagename
+docker tag $ID{4 letters shortcut} imagename
+docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+
+
+########################################## ADD USER in docker ##########################################
+
+
+1) After BUILD with only root USER
+RUN groupadd -r indiano && useradd -r -g indiano indiano
+RUN groupadd -g 999 indiano && useradd -r -u 999 -g indiano indiano
+groupadd -g 1000 indiano && useradd -r -u 1000 -g indiano indiano
+USER indiano
+COMMIT
+
+2) USER keyword during IMAGE creation
+
+3) ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["mongod"]
+
+4) SUDO permission for user
+RUN apt install -y sudo && \
+    adduser user && \
+    echo "user ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/user && \
+    chmod 0440 /etc/sudoers.d/user
+RUN su - user -c "touch mine"
+CMD ["su", "-", "user", "-c", "/bin/bash"]
+
+
 ########################################## RUN docker ##########################################
 
 
@@ -8,32 +50,33 @@
 docker run -u $(id -u):$(id -g)  # --user $UID:$UID, --user=$USER
 
 # Bash shell session
-docker run -u $(id -u):$(id -g) -it indiano/cornucopia:latest-jupyterlab bash
+docker run -u $(id -u):$(id -g) -it cornucopia/life:v2 bash
 
 # GPU run check
-docker run --gpus all -it --rm indiano/cornucopia:latest-jupyterlab \
-   python -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
+docker run --gpus all -it --rm cl:sudo python -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
+docker run --gpus all -it --rm cornucopia/life:indie python -c "import tensorflow as tf; print(tf.config.experimental.list_physical_devices('GPU'))"
 
 # nvidia-smi run
 docker run --gpus all -it tensorflow/tensorflow:latest-gpu-jupyter nvidia-smi
 
 # Jupyter lab run
-docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --expose 8888 -p 8888:8888 indiano/cornucopia:latest-jupyterlab  # --net=host, --ipc=host
+docker run --gpus all -u $(id -u):$(id -g) -it -v $PWD:/tf -w /tf --net=host --expose 8888 -p 8888:8888 cornucopia/life:v2  # --net=host, --ipc=host
+docker run --gpus all -it -v $PWD:/tf -w /tf --net=host --expose 8888 -p 8888:8888 cornucopia/life:v2
+
+# Running docker exec in docker container
+docker run -v /var/run/docker.sock:/var/run/docker.sock ...
 
 
-########################################## BUILD docker ##########################################
+########################################## COMMIT docker ##########################################
 
 
-# Docker build
-docker build -t indiano/cornucopia:latest-jupyterlab --no-cache .
-docker build -t cornucopia/life:latest --no-cache .
+FROM commithash
+CMD ["jupyter", "lab", "--no-browser", "--ip=127.0.0.1", "/tf"]
 
-# Docker inspect 
-docker inspect -f "{{ .Config.Env }}" container_id
+docker commit --change='CMD ["jupyter", "lab", "--no-browser", "--ip=127.0.0.1", "/tf"]' c021bb33120f cornucopia/life:useradd-cmd-commit
 
-# Docker commit & rollback
-docker history imagename
-docker tag taagid{4 letters} imagename
+# ENTRYPOINT
+docker commit --change='ENTRYPOINT ["myEntryPoint.sh"]' $(docker ps -lq)
 
 
 ########################################## MANAGE docker ##########################################
@@ -73,6 +116,9 @@ docker container rm $(docker container ls -aq)
 # Removing Docker Images
 docker image ls
 docker image rm 75835a67d134 2a4cca5ac898
+
+# Remove untagged images
+docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
 
 # Remove dangling images
 # A dangling image is an image that is not tagged and is not used by any container.
