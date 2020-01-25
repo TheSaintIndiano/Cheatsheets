@@ -1,0 +1,10 @@
+# JUPYTER Notebook & LAB
+
+
+########################################## Formatting ##########################################
+
+
+# Tabulate
+from tabulate import tabulate
+dft=lambda df:tabulate(df,headers='keys',tablefmt='psql')
+print(dft(df))
