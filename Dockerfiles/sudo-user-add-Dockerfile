@@ -1,0 +1,33 @@
+# Dockerfile with tensorflow gpu support on python3, opencv3
+
+ARG IMAGE_NAME=nvidia/cuda
+ARG UBUNTU_VERSION=18.04
+
+
+FROM ${IMAGE_NAME}:10.1-runtime-ubuntu${UBUNTU_VERSION}
+LABEL maintainer="Cornucopia Life <cornucopia.life@gmail.com>"
+
+
+ENV CUDA_VERSION 10.1
+ENV CUDNN_VERSION 7.6.5.32
+ENV OPENCV_VERSION 4.2.0
+ENV NODEJS_VERSION 12.x
+ENV NUM_CORES 5
+ENV OC_USER indiano
+
+USER root
+
+# Remove interactive dialog option
+ENV DEBIAN_FRONTEND noninteractive
+
+# Set root as the working directory
+WORKDIR /
+
+RUN apt update && apt install -y sudo
+
+RUN groupadd -g 1000 $OC_USER && \
+	useradd -m -r -s /bin/bash -u 1000 -g $OC_USER $OC_USER && \
+	usermod -aG sudo $OC_USER && \
+	echo  $OC_USER:$OC_USER | chpasswd 
+
+CMD ["su", "-", "$OC_USER", "-c", "/bin/bash"]

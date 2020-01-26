@@ -1,0 +1,350 @@
+# Dockerfile based on NVIDIA CUDA & UBUNTU base image with PYTHON3, OPENCV4, Machine Learning Libraries (Sklearn, AUTO-Sklearn, Tensorflow GPU, Keras,  ), Jupyter Lab
+
+ARG IMAGE_NAME=nvidia/cuda
+ARG UBUNTU_VERSION=18.04
+
+
+FROM ${IMAGE_NAME}:10.1-runtime-ubuntu${UBUNTU_VERSION}
+LABEL maintainer="Cornucopia Life <cornucopia.life@gmail.com>"
+
+
+ENV CUDA_VERSION 10.1
+ENV CUDNN_VERSION 7.6.5.32
+ENV NCCL2_VERSION 2.5.6
+ENV NVINF_VERSION 6.0.1
+ENV OPENCV_VERSION 4.2.0
+ENV NODEJS_VERSION 12.x
+ENV NUM_CORES 5
+ENV OC_USER indiano
+
+USER root
+
+# Remove interactive dialog option
+ENV DEBIAN_FRONTEND noninteractive
+
+# Set root as the working directory
+WORKDIR /
+
+
+############################################################################
+################# Dependency: PIP, PYTHON & SNI #####################
+############################################################################
+
+
+ARG PYTHON=python3
+ARG PIP=pip3
+
+# See http://bugs.python.org/issue19846
+ENV LANG C.UTF-8
+
+RUN apt-get update && apt-get install -y \
+    ${PYTHON} \
+    ${PYTHON}-pip
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+
+# Add SNI (Server Name Indication) support to Python
+RUN ${PIP} install \
+        pyopenssl \
+        ndg-httpsclient \
+        pyasn1
+
+
+############################################################################
+################# Dependency: linux, image, video #####################
+############################################################################
+
+
+# Core linux dependencies. 
+RUN apt-get update && apt-get install -y --allow-change-held-packages \
+        build-essential \
+        sudo \
+        cmake \
+        curl \
+        emacs \
+        g++ \
+        gfortran \
+        git \
+        inkscape \
+        nano \
+        netcat \
+        pandoc \
+        pkg-config \
+        qt5-default \
+        software-properties-common \
+        unzip \
+        vim \
+        wget \
+        yasm \
+        doxygen \
+        openexr \
+        imagemagick \ 
+        graphicsmagick \
+        libatlas-base-dev \
+        libavcodec-dev \
+        libavformat-dev \ 
+        libboost-all-dev \
+        libcanberra-gtk-module \
+        libdc1394-22-dev \
+        libeigen3-dev \
+        libgdal-dev \
+        libgflags-dev \
+        libgtk-3-dev \
+        libhdf5-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libllvm8 \
+        libnccl2=${NCCL2_VERSION}-1+cuda${CUDA_VERSION} \
+        libnvinfer6=${NVINF_VERSION}-1+cuda${CUDA_VERSION} \ 
+        libopenblas-dev \
+        libpng-dev \
+        libswscale-dev \
+        libtbb2 libtbb-dev \
+        libtiff-dev \
+        libv4l-dev \
+        libvtk6-dev \
+        libx264-dev \
+        libxvidcore-dev \
+        llvm-dev \
+        rsync \
+        python-dev \
+        python-tk \
+        python3-dev \
+        python3-tk \
+        && \
+    apt-get clean && \
+    apt-get autoremove && \
+    rm -rf /var/lib/apt/lists/* 
+
+RUN wget -q --no-check-certificate  -O jasper.zip https://github.com/jasperproject/jasper-client/archive/master.zip && \
+        unzip jasper.zip && \
+        chmod +x jasper-client-master/jasper.py && \
+        ${PIP} install -r jasper-client-master/client/requirements.txt && \
+        rm -rf jasper.zip jasper-client-master 
+
+
+############################################################################
+################# Dependency: tensorflow-gpu #####################
+############################################################################
+
+
+ARG TF_PACKAGE=tensorflow-gpu
+RUN ${PIP} --no-cache-dir install ${TF_PACKAGE}
+
+RUN mkdir -p /tf/tensorflow-tutorials && chmod -R a+rwx /tf/ && \ 
+    mkdir /.local && chmod a+rwx /.local
+
+RUN cd /tf/tensorflow-tutorials && \
+    wget https://github.com/tensorflow/models/blob/master/samples/core/tutorials/keras/basic_classification.ipynb && \
+    wget https://github.com/tensorflow/models/blob/master/samples/core/tutorials/keras/basic_text_classification.ipynb && \
+    wget https://github.com/tensorflow/models/blob/master/samples/core/tutorials/keras/overfit_and_underfit.ipynb && \
+    wget https://github.com/tensorflow/models/blob/master/samples/core/tutorials/keras/save_and_restore_models.ipynb
+
+WORKDIR /
+
+
+############################################################################
+################# Dependency: cuda-10.1, libcublas, libcufft, libcufftw symlinking #####################
+############################################################################
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-downgrades \
+        libcudnn7=${CUDNN_VERSION}-1+cuda${CUDA_VERSION} && \
+        rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /usr/local/cuda-${CUDA_VERSION} /usr/local/cuda
+RUN ln -s /usr/lib/x86_64-linux-gnu/libcudnn.so.7 /usr/local/cuda/lib64/libcudnn.so.7
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer.so.6 /usr/local/cuda/lib64/libnvinfer.so.6
+
+ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
+
+ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:$LD_LIBRARY_PATH
+
+
+############################################################################
+################# Dependency: NodeJS required for Jupyter Lab #####################
+############################################################################
+
+
+RUN wget https://deb.nodesource.com/setup_${NODEJS_VERSION} && \
+    chmod +x setup_${NODEJS_VERSION} && \
+    bash setup_${NODEJS_VERSION} && \
+    apt-get install -y nodejs && \
+    rm -rf setup_${NODEJS_VERSION}
+
+
+############################################################################
+################# Dependency: ML libraries #####################
+############################################################################
+
+
+RUN ${PIP} --no-cache-dir install \
+        numpy \
+        scipy \
+        nose \
+        Pillow \
+        pygments \
+        six \
+        sphinx \
+        wheel \
+        zmq \
+        imutils \
+        matplotlib \ 
+        seaborn \
+        plotly \
+        bokeh \
+        pandas \
+        numexpr \
+        tqdm \
+        urllib3 \
+        sympy \
+        h5py \
+        hdf5storage \
+        py3nvml \
+        pyinstrument \
+        scikit-learn \ 
+        scikit-image \
+        dlib \
+        statsmodels \
+        cloudpickle \
+        dill \
+        dask \
+        numba \
+        sqlalchemy \
+        vincent \
+        beautifulsoup4 \
+        protobuf \
+        xlrd \
+        keras \
+        autokeras \
+        tflearn \
+        Cython \
+        tensorflow-probability \
+        tensorflow-hub \
+        ipykernel \
+        ipywidgets \
+        jupyter \
+        jupyterlab \
+        jupyter-tensorboard
+
+
+############################################################################
+################# Dependency: OpenCV #####################
+############################################################################
+
+
+WORKDIR /
+
+# Download OpenCV
+
+RUN mkdir -p /usr/local/src && \
+       cd /usr/local/src && \
+       wget -q --no-check-certificate https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.tar.gz && \
+       tar xfz ${OPENCV_VERSION}.tar.gz && \
+       mv opencv-${OPENCV_VERSION} opencv && \
+       rm ${OPENCV_VERSION}.tar.gz && \
+       wget -q --no-check-certificate https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.tar.gz && \
+       tar xfz ${OPENCV_VERSION}.tar.gz && \
+       mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
+       rm ${OPENCV_VERSION}.tar.gz
+
+
+# Build OpenCV
+
+RUN mkdir -p /usr/local/src/opencv/build && \
+      cd /usr/local/src/opencv/build && \
+      cmake \
+            -D BUILD_opencv_java=OFF  \
+            -D WITH_CUDA=ON  \
+            -D ENABLE_FAST_MATH=1  \
+            -D CUDA_FAST_MATH=1  \
+            -D WITH_CUBLAS=1  \
+            -D WITH_QT=ON  \    
+            -D ENABLE_AVX=ON  \ 
+            -D CPU_DISPATCH=AVX,AVX2 \
+            -D WITH_OPENGL=ON  \  
+            -D WITH_OPENCL=OFF  \
+            -D WITH_TBB=ON  \
+            -D WITH_EIGEN=ON  \
+            -D WITH_IPP=ON  \
+            -D WITH_CSTRIPES=ON  \
+            -D WITH_V4L=ON  \
+            -D CMAKE_BUILD_TYPE=RELEASE  \
+            -D CMAKE_INSTALL_PREFIX=/usr/local  \
+            -D PYTHON_DEFAULT_EXECUTABLE=$(which python3)  \
+            -D OPENCV_GENERATE_PKGCONFIG=ON  \
+            -D WITH_WEBP=OFF  \
+            -D INSTALL_C_EXAMPLES=OFF  \
+            -D INSTALL_PYTHON_EXAMPLES=ON  \
+            -D BUILD_EXAMPLES=OFF  \
+            -D OPENCV_ENABLE_NONFREE=ON  \
+            -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules  \
+            -D BUILD_DOCS=OFF  \
+            -D BUILD_TESTS=OFF  \
+            -D BUILD_PERF_TESTS=OFF  \
+            -D CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda  \
+            -D WITH_QT=ON  \ 
+            -D FORCE_VTK=ON  \
+            -D WITH_GDAL=ON  \
+            -D WITH_XINE=ON  \
+            -D WITH_GTK=ON  \
+            -D WITH_OPENMP=ON  \
+       .. && \
+       make -j${NUM_CORES} && \
+       make install && \
+       ldconfig
+
+
+############################################################################
+################# Dependency: Jupyter Lab #####################
+############################################################################
+
+
+# Activate ipywidgets extension in the environment that runs the notebook server
+RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
+	jupyter labextension install @jupyter-widgets/jupyterlab-manager@1.1 --no-build && \
+	jupyter labextension install jupyterlab-plotly@1.4.0 --no-build && \
+	jupyter labextension install plotlywidget@1.4.0 --no-build && \
+	jupyter labextension install jupyterlab_bokeh@1.0.0 --no-build && \
+	jupyter labextension install jupyterlab_tensorboard --no-build && \
+	jupyter lab build --dev-build=False && \
+	npm cache clean --force 
+
+# Install various jupyter lab extensions
+RUN jupyter labextension install @jupyterlab/github
+RUN jupyter labextension install jupyterlab-drawio
+RUN jupyter labextension install jupyter-leaflet
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
+RUN ${PIP} install --no-cache-dir jupyter-tabnine==1.0.2  && \
+      jupyter nbextension install --py jupyter_tabnine && \
+      jupyter nbextension enable --py jupyter_tabnine && \
+      jupyter serverextension enable --py jupyter_tabnine
+RUN ${PIP} install jupyter_contrib_nbextensions && \
+    ${PIP} install jupyter_nbextensions_configurator && \
+      jupyter nbextension enable codefolding/main
+RUN jupyter labextension install @ijmbarr/jupyterlab_spellchecker
+
+
+
+
+# Attempt to Minimize image size 
+RUN (DEBIAN_FRONTEND=noninteractive apt-get autoremove -y; DEBIAN_FRONTEND=noninteractive apt-get autoclean -y)
+
+# Add USER indiano:indiano also in sudo group
+RUN groupadd -g 1000 $OC_USER && \
+    useradd -m -r -s /bin/bash -u 1000 -g $OC_USER $OC_USER && \
+    usermod -aG sudo $OC_USER && \
+    echo  $OC_USER:$OC_USER | chpasswd 
+
+# Expose Ports for TensorBoard (6006), Ipython (8888)
+EXPOSE 6006 8888
+
+WORKDIR /tf
+
+# Run the following script when the container launches 
+CMD ["jupyter", "lab", "--no-browser", "--ip=127.0.0.1", "/tf"]

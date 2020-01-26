@@ -1,0 +1,31 @@
+FROM tensorflow/tensorflow:nightly-gpu-py3-jupyter
+
+RUN apt-get update
+RUN apt-get install -y vim wget tmux
+
+# Installing nodejs required for jupyterlab plugins
+RUN wget https://deb.nodesource.com/setup_12.x
+RUN chmod +x setup_12.x
+RUN bash setup_12.x
+RUN apt-get install -y nodejs
+
+# Installing required packages (some are already present in tensorflow distribution)
+RUN pip install --upgrade request scikit-image scikit-learn seaborn tensorflow-probability jupyterlab ipywidgets jupyter-tensorboard
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
+
+# Installing tensorboard for jupyterlab
+RUN pip install --upgrade jupyter-tensorboard                       
+RUN jupyter labextension install jupyterlab_tensorboard
+
+# Install tensorflow hub
+RUN pip install tensorflow-hub
+
+# -m option creates a fake writable home folder for Jupyter.
+RUN groupadd -g 1000 indiano && \
+    useradd -m -r -u 1000 -g indiano indiano
+USER indiano
+
+EXPOSE 8888
+
+CMD ["jupyter", "lab", "--no-browser", "--ip=127.0.0.1", \
+     "/tf"]
