@@ -1,0 +1,7 @@
+[
+	{ "keys": ["ctrl+alt+h"], "command": "text_marker" },
+	{ "keys": ["ctrl+alt+u"], "command": "text_marker_clear" }
+	{ "button": "button1", "modifiers": ["alt"], "command": "text_marker", "press_command": "drag_select" },
+  { "button": "button1", "count": 2, "modifiers": ["alt"], "command": "text_marker_clear", "press_command": "drag_select" }
+]
+

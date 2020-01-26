@@ -1,0 +1,5 @@
+[
+	{ "keys": ["ctrl+alt+h"], "command": "text_marker" },
+	{ "keys": ["ctrl+alt+u"], "command": "text_marker_clear" }
+]
+
