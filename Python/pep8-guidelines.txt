@@ -1,0 +1,8 @@
+PEP 8
+
+modules (filenames) should have short, all-lowercase names, and they can contain underscores;
+packages (directories) should have short, all-lowercase names, preferably without underscores;
+classes should use the CapWords convention.
+
+A Python module is simply a Python source file, which can expose classes, functions and global variables.
+A Python package is simply a directory of Python module(s).
