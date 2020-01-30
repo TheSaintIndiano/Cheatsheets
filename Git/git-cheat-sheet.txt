@@ -1,0 +1,49 @@
+# GIT CHEAT SHEET
+
+# Git Ignore tutorials
+https://www.atlassian.com/git/tutorials/saving-changes/gitignore
+
+# Download a specific file from GitHub
+svn export https://github.com/spMohanty/PlantVillage-Dataset/trunk/raw/color
+
+
+
+
+
+
+
+# Git Ignore tutorial
+Using * is valid, but it works recursively. It won't look into directories from then on out. People recommend using !*/ to whitelist directories again, but it's actually better to blacklist the highest level folder with /*
+
+# Blacklist files/folders in same directory as the .gitignore file
+/*
+
+# Whitelist some files
+!.gitignore
+!README.md
+
+# Ignore all files named .DS_Store or ending with .log
+**/.DS_Store
+**.log
+
+# Whitelist folder/a/b1/ and folder/a/b2/
+# trailing "/" is optional for folders, may match file though.
+# "/" is NOT optional when followed by a *
+!folder/
+folder/*
+!folder/a/
+folder/a/*
+!folder/a/b1/
+!folder/a/b2/
+!folder/a/file.txt
+
+# Adding to the above, this also works...
+!/folder/a/deeply
+/folder/a/deeply/*
+!/folder/a/deeply/nested
+/folder/a/deeply/nested/*
+!/folder/a/deeply/nested/subfolder
+The above code would ignore all files except for .gitignore, README.md, folder/a/file.txt, folder/a/b1/ and folder/a/b2/ and everything contained in those last two folders. (And .DS_Store and *.log files would be ignored in those folders.)
+
+Obviously I could do e.g. !/folder or !/.gitignore too.
+
